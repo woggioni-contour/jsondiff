@@ -1,0 +1,114 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.woggioni.gradle.lombok'
+    id 'net.woggioni.gradle.envelope'
+}
+
+import java.util.jar.Attributes.Name
+
+group = 'network.contour'
+
+version = '0.1-SNAPSHOT'
+
+repositories {
+    maven {
+        url = 'https://woggioni.net/mvn/'
+        content {
+            includeGroup 'net.woggioni'
+        }
+    }
+    mavenCentral()
+}
+
+pluginManager.withPlugin('java') {
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    JavaPluginExtension javaPluginExtension = project.extensions.findByType(JavaPluginExtension.class)
+    tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile) {
+        boolean  condition = it.javaCompiler.isPresent() && it.javaCompiler.get().metadata.languageVersion > JavaLanguageVersion.of(8) ||
+                (!it.javaCompiler.isPresent() && JavaVersion.current() > JavaVersion.VERSION_1_8)
+        if(condition) {
+            options.release = 8
+        }
+    }
+
+    dependencies {
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: getProperty('junit.jupiter.version')
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: getProperty('junit.jupiter.version')
+        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: getProperty('junit.jupiter.version')
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+    test {
+        useJUnitPlatform()
+    }
+}
+
+pluginManager.withPlugin('net.woggioni.gradle.lombok') {
+    lombok {
+        version = getProperty('lombok.version')
+    }
+}
+
+private static String resolveProperty(Project project, String key, String defaultValue = null) {
+    if(project.hasProperty(key)) return project.getProperty(key)
+    else {
+        String envVarKey = key.replace('.', '_').toUpperCase()
+        String envVarValue = System.getenv().get(envVarKey)
+        if(envVarValue != null) return envVarValue
+        else if(defaultValue != null) return defaultValue
+        else throw new GradleException("Impossible to resolve property '$key'," +
+                    " either add it to Gradle's project properties from the command line using:\n" +
+                    "./gradlew -P$key=someValue\n" +
+                    "or set the environmental variable $envVarKey"
+            )
+    }
+}
+
+project.ext.resolveProperty = this.&resolveProperty.curry(project)
+
+ext {
+    setProperty('jpms.module.name', 'network.contour.jsondiff')
+}
+
+dependencies {
+    implementation group: 'info.picocli', name: 'picocli', version: getProperty('picocli.version')
+    implementation group: 'com.github.java-json-tools', name: 'json-patch', version: getProperty('json.patch.version')
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: getProperty('jackson.version')
+}
+
+envelopeJar {
+    mainClass = 'network.contour.jsondiff.Main'
+}
+
+jar {
+    manifest {
+        attributes[Name.SPECIFICATION_TITLE.toString()] = 'jsondiff'
+        attributes[Name.SPECIFICATION_VERSION.toString()] = project.version
+    }
+}
+
+
+wrapper {
+    distributionType = Wrapper.DistributionType.BIN
+    gradleVersion = getProperty("gradle.version")
+}
+
+publishing {
+    repositories {
+        maven {
+            url = "https://mvn.woggioni.net/"
+        }
+    }
+    publications {
+        myDistribution(MavenPublication) {
+            artifact envelopeJar
+        }
+    }
+}

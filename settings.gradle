@@ -1,0 +1,20 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = 'https://woggioni.net/mvn'
+            content {
+                includeGroup 'net.woggioni.gradle'
+                includeGroup 'net.woggioni.gradle.lombok'
+                includeGroup 'net.woggioni.gradle.envelope'
+            }
+        }
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'net.woggioni.gradle.envelope' version getProperty('gradle.envelope.plugin.version')
+        id 'net.woggioni.gradle.lombok' version getProperty('gradle.lombok.plugin.version')
+    }
+}
+
+rootProject.name = 'jsondiff'

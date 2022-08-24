@@ -11,10 +11,10 @@ pluginManagement {
         gradlePluginPortal()
     }
 
-    plugins {
-        id 'net.woggioni.gradle.envelope' version getProperty('gradle.envelope.plugin.version')
-        id 'net.woggioni.gradle.lombok' version getProperty('gradle.lombok.plugin.version')
-    }
+//    plugins {
+//        alias(libs.plugins.envelope)
+//        alias(libs.plugins.lombok)
+//    }
 }
 
 rootProject.name = 'jsondiff'

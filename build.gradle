@@ -1,15 +1,16 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.woggioni.gradle.lombok'
-    id 'net.woggioni.gradle.envelope'
+
+    alias(libs.plugins.envelope)
+    alias(libs.plugins.lombok)
 }
 
 import java.util.jar.Attributes.Name
 
 group = 'network.contour'
 
-version = '0.1-SNAPSHOT'
+version = libs.versions.jsondiff
 
 repositories {
     maven {
@@ -27,7 +28,6 @@ pluginManager.withPlugin('java') {
         withSourcesJar()
     }
 
-    JavaPluginExtension javaPluginExtension = project.extensions.findByType(JavaPluginExtension.class)
     tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile) {
         boolean  condition = it.javaCompiler.isPresent() && it.javaCompiler.get().metadata.languageVersion > JavaLanguageVersion.of(8) ||
                 (!it.javaCompiler.isPresent() && JavaVersion.current() > JavaVersion.VERSION_1_8)
@@ -37,9 +37,9 @@ pluginManager.withPlugin('java') {
     }
 
     dependencies {
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: getProperty('junit.jupiter.version')
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: getProperty('junit.jupiter.version')
-        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: getProperty('junit.jupiter.version')
+        testImplementation libs.junit.api
+        testImplementation libs.junit.params
+        testRuntimeOnly libs.junit.engine
     }
 
     tasks.withType(Test).configureEach {
@@ -52,7 +52,7 @@ pluginManager.withPlugin('java') {
 
 pluginManager.withPlugin('net.woggioni.gradle.lombok') {
     lombok {
-        version = getProperty('lombok.version')
+        version = libs.versions.lombok
     }
 }
 
@@ -78,9 +78,9 @@ ext {
 }
 
 dependencies {
-    implementation group: 'info.picocli', name: 'picocli', version: getProperty('picocli.version')
-    implementation group: 'com.github.java-json-tools', name: 'json-patch', version: getProperty('json.patch.version')
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: getProperty('jackson.version')
+    implementation libs.picocli
+    implementation libs.json.patch
+    implementation libs.jackson
 }
 
 envelopeJar {
@@ -97,7 +97,7 @@ jar {
 
 wrapper {
     distributionType = Wrapper.DistributionType.BIN
-    gradleVersion = getProperty("gradle.version")
+    gradleVersion = libs.versions.gradle.get()
 }
 
 publishing {

@@ -10,7 +10,7 @@ import java.util.jar.Attributes.Name
 
 group = 'network.contour'
 
-version = libs.versions.jsondiff
+version = libs.versions.jsondiff.get()
 
 repositories {
     maven {

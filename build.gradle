@@ -1,68 +1,18 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
-
-    alias(libs.plugins.envelope)
-    alias(libs.plugins.lombok)
+    alias(libs.plugins.envelope) apply false
+    alias(libs.plugins.lombok) apply false
 }
 
 import java.util.jar.Attributes.Name
 
-group = 'network.contour'
-
-version = libs.versions.jsondiff.get()
-
-repositories {
-    maven {
-        url = 'https://woggioni.net/mvn/'
-        content {
-            includeGroup 'net.woggioni'
-        }
-    }
-    mavenCentral()
-}
-
-pluginManager.withPlugin('java') {
-    java {
-        withJavadocJar()
-        withSourcesJar()
-    }
-
-    tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile) {
-        boolean  condition = it.javaCompiler.isPresent() && it.javaCompiler.get().metadata.languageVersion > JavaLanguageVersion.of(8) ||
-                (!it.javaCompiler.isPresent() && JavaVersion.current() > JavaVersion.VERSION_1_8)
-        if(condition) {
-            options.release = 8
-        }
-    }
-
-    dependencies {
-        testImplementation libs.junit.api
-        testImplementation libs.junit.params
-        testRuntimeOnly libs.junit.engine
-    }
-
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-    }
-    test {
-        useJUnitPlatform()
-    }
-}
-
-pluginManager.withPlugin('net.woggioni.gradle.lombok') {
-    lombok {
-        version = libs.versions.lombok
-    }
-}
 
 private static String resolveProperty(Project project, String key, String defaultValue = null) {
-    if(project.hasProperty(key)) return project.getProperty(key)
+    if (project.hasProperty(key)) return project.getProperty(key)
     else {
         String envVarKey = key.replace('.', '_').toUpperCase()
         String envVarValue = System.getenv().get(envVarKey)
-        if(envVarValue != null) return envVarValue
-        else if(defaultValue != null) return defaultValue
+        if (envVarValue != null) return envVarValue
+        else if (defaultValue != null) return defaultValue
         else throw new GradleException("Impossible to resolve property '$key'," +
                     " either add it to Gradle's project properties from the command line using:\n" +
                     "./gradlew -P$key=someValue\n" +
@@ -71,44 +21,89 @@ private static String resolveProperty(Project project, String key, String defaul
     }
 }
 
-project.ext.resolveProperty = this.&resolveProperty.curry(project)
+subprojects { subproject ->
 
-ext {
-    setProperty('jpms.module.name', 'network.contour.jsondiff')
-}
+    apply plugin: libs.plugins.lombok.get().pluginId
 
-dependencies {
-    implementation libs.picocli
-    implementation libs.json.patch
-    implementation libs.jackson
-}
 
-envelopeJar {
-    mainClass = 'network.contour.jsondiff.Main'
-}
+    group = 'network.contour'
 
-jar {
-    manifest {
-        attributes[Name.SPECIFICATION_TITLE.toString()] = 'jsondiff'
-        attributes[Name.SPECIFICATION_VERSION.toString()] = project.version
+    version = libs.versions.jsondiff.get()
+
+    repositories {
+        maven {
+            url = 'https://woggioni.net/mvn/'
+            content {
+                includeGroup 'net.woggioni'
+            }
+        }
+        mavenCentral()
+    }
+
+    pluginManager.withPlugin('java') {
+        java {
+            withJavadocJar()
+            withSourcesJar()
+        }
+
+        tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile) {
+            boolean condition = it.javaCompiler.isPresent() && it.javaCompiler.get().metadata.languageVersion > JavaLanguageVersion.of(8) ||
+                    (!it.javaCompiler.isPresent() && JavaVersion.current() > JavaVersion.VERSION_1_8)
+            if (condition) {
+                options.release = 8
+            }
+        }
+
+        dependencies {
+            testImplementation libs.junit.api
+            testImplementation libs.junit.params
+            testRuntimeOnly libs.junit.engine
+        }
+
+        tasks.withType(Test).configureEach {
+            useJUnitPlatform()
+        }
+    }
+
+    pluginManager.withPlugin(libs.plugins.lombok.get().pluginId) {
+        lombok {
+            version = libs.versions.lombok
+        }
+    }
+
+    ext.resolveProperty = this.&resolveProperty.curry(subproject)
+
+    jar {
+        manifest {
+            attributes[Name.SPECIFICATION_TITLE.toString()] = subproject.name
+            attributes[Name.SPECIFICATION_VERSION.toString()] = subproject.version
+        }
+    }
+
+    pluginManager.withPlugin('maven-publish') {
+        publishing {
+            repositories {
+                maven {
+                    url = "https://mvn.woggioni.net/"
+                }
+            }
+        }
+    }
+
+    pluginManager.withPlugin(libs.plugins.envelope.get().pluginId) {
+        pluginManager.withPlugin('maven-publish') {
+            publishing {
+                publications {
+                    myDistribution(MavenPublication) {
+                        artifact envelopeJar
+                    }
+                }
+            }
+        }
     }
 }
-
 
 wrapper {
     distributionType = Wrapper.DistributionType.BIN
     gradleVersion = libs.versions.gradle.get()
-}
-
-publishing {
-    repositories {
-        maven {
-            url = "https://mvn.woggioni.net/"
-        }
-    }
-    publications {
-        myDistribution(MavenPublication) {
-            artifact envelopeJar
-        }
-    }
 }

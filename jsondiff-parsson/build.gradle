@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.envelope)
+    alias(libs.plugins.multi.release.jar)
+}
+
+ext {
+    setProperty('jpms.module.name', 'network.contour.jsondiff.parsson')
+}
+
+dependencies {
+
+    implementation project(':jsondiff-lib')
+    implementation libs.jakarta.json.api
+
+    runtimeOnly libs.parsson
+}
+
+envelopeJar {
+    mainClass = 'network.contour.jsondiff.parsson.Main'
+//    mainModule = 'network.contour.jsondiff.parsson'
+}

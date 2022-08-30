@@ -6,15 +6,15 @@ pluginManagement {
                 includeGroup 'net.woggioni.gradle'
                 includeGroup 'net.woggioni.gradle.lombok'
                 includeGroup 'net.woggioni.gradle.envelope'
+                includeGroup 'net.woggioni.gradle.multi-release-jar'
             }
         }
         gradlePluginPortal()
     }
-
-//    plugins {
-//        alias(libs.plugins.envelope)
-//        alias(libs.plugins.lombok)
-//    }
 }
 
 rootProject.name = 'jsondiff'
+
+include 'jsondiff-lib'
+include 'jsondiff-jsonpatch'
+include 'jsondiff-parsson'

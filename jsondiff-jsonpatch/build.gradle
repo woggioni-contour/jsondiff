@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.envelope)
+}
+
+ext {
+    setProperty('jpms.module.name', 'network.contour.jsondiff.jsonpatch')
+}
+
+dependencies {
+
+    implementation project(':jsondiff-lib')
+
+    implementation libs.json.patch
+    implementation libs.jackson
+}
+
+envelopeJar {
+    mainClass = 'network.contour.jsondiff.jsonpatch.Main'
+}

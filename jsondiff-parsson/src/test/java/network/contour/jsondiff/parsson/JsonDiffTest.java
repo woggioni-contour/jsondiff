@@ -1,11 +1,8 @@
 package network.contour.jsondiff.parsson;
 
-import jakarta.json.JsonMergePatch;
 import jakarta.json.JsonPatch;
 import jakarta.json.JsonStructure;
-import jakarta.json.JsonValue;
 import jakarta.json.spi.JsonProvider;
-import jdk.jshell.spi.SPIResolutionException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.TestInstance;

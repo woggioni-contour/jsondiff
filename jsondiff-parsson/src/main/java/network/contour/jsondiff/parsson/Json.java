@@ -15,9 +15,24 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
+import java.util.Spliterators;
+import java.util.stream.StreamSupport;
 
 public class Json {
-    public static final JsonProvider provider = JsonProvider.provider();
+    public static final JsonProvider provider;
+
+    static {
+        ServiceLoader<JsonProvider> sl = ServiceLoader.load(JsonProvider.class, Json.class.getClassLoader());
+        provider = StreamSupport.stream(
+            Spliterators.spliteratorUnknownSize(sl.iterator(), 0), false)
+                .findFirst()
+                .orElseThrow(
+                    () -> new ServiceConfigurationError(
+                        String.format("No provider found for %s", JsonProvider.class.getName()))
+                );
+    }
 
     @SneakyThrows
     public static JsonStructure parse(Path path) {

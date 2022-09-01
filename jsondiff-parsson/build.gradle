@@ -19,5 +19,5 @@ dependencies {
 
 envelopeJar {
     mainClass = 'network.contour.jsondiff.parsson.Main'
-//    mainModule = 'network.contour.jsondiff.parsson'
+    mainModule = 'network.contour.jsondiff.parsson'
 }
